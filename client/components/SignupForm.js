@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
 
+import query from '../queries/CurrentUser';
 import mutation from '../mutations/Signup';
 import AuthForm from './AuthForm';
+import { hashHistory } from "react-router";
 
 class SignupForm extends Component {
     constructor(props) {
@@ -13,12 +15,19 @@ class SignupForm extends Component {
         };
     }
 
+    componentWillUpdate(nextProps) {
+        if (!this.props.data.user && nextProps.data.user) {
+            hashHistory.push('/dashboard');
+        }
+    }
+
     onSubmit({ email, password}) {
         this.props.mutate({
             variables: {
                 email,
                 password
-            }
+            },
+            refetchQueries: [{ query }]
         }).catch(res => {
             const errors = res.graphQLErrors.map(error => error.message);
 
@@ -39,4 +48,6 @@ class SignupForm extends Component {
     }
 }
 
-export default graphql(mutation)(SignupForm);
+export default graphql(query)(
+    graphql(mutation)(SignupForm)
+);
